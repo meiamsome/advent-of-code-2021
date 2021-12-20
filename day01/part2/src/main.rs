@@ -7,7 +7,7 @@ fn get_depth_increases(list: &Vec<u16>) -> usize {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut contents = String::new();
     {
-        let mut file = File::open("./day01/part1/input.txt")?;
+        let mut file = File::open("./day01/part2/input.txt")?;
         file.read_to_string(&mut contents)?;
     }
 
