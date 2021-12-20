@@ -80,7 +80,7 @@ fn get_win_time(numbers_called: &HashMap<u8, usize>, board: &Board) -> usize {
         .map(|combo| {
             combo
                 .into_iter()
-                .map(|n| *numbers_called.get(&n).ok_or(usize::MAX).unwrap())
+                .map(|n| *numbers_called.get(&n).unwrap_or(&usize::MAX))
                 .max()
                 .unwrap()
         })
@@ -91,8 +91,27 @@ fn get_win_time(numbers_called: &HashMap<u8, usize>, board: &Board) -> usize {
 fn get_winning_board(
     numbers_called: &HashMap<u8, usize>,
     boards: &mut dyn Iterator<Item = Board>,
-) -> Board {
-    boards.min_by_key(|board| get_win_time(numbers_called, board)).unwrap()
+) -> (Board, usize) {
+    boards
+        .map(|board| (board, get_win_time(numbers_called, &board)))
+        .min_by(|a, b| a.1.cmp(&b.1))
+        .unwrap()
+}
+
+fn get_board_score(
+    numbers_called: &HashMap<u8, usize>,
+    board: &Board,
+    winning_index: usize,
+    winning_number: u8,
+) -> u16 {
+    let unmarked_sum: u16 = board
+        .into_iter()
+        .flat_map(|row| row.into_iter())
+        .filter(|value| *numbers_called.get(value).unwrap_or(&usize::MAX) > winning_index)
+        .map(|&number| number as u16)
+        .sum();
+
+    return unmarked_sum as u16 * winning_number as u16;
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -102,12 +121,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         file.read_to_string(&mut contents)?;
     }
 
-    let (mut numbers_called, mut boards) = parse_input(&contents);
+    let (numbers_called, mut boards) = parse_input(&contents);
 
-    let numbers_called_map = called_numbers_to_map(&mut numbers_called);
-    let winning_board = get_winning_board(&numbers_called_map, &mut boards);
+    let numbers_called: Vec<_> = numbers_called.collect();
+
+    let numbers_called_map = called_numbers_to_map(&mut numbers_called.clone().into_iter());
+    let (winning_board, winning_index) = get_winning_board(&numbers_called_map, &mut boards);
+
+    let winning_number = numbers_called[winning_index];
+
+    let winning_board_score = get_board_score(
+        &numbers_called_map,
+        &winning_board,
+        winning_index,
+        winning_number,
+    );
 
     println!("Winning Board: {:?}", winning_board);
+    println!("Winning Board Score: {}", winning_board_score);
 
     Ok(())
 }
@@ -333,6 +364,32 @@ mod test {
 
         let winning_board = get_winning_board(&numbers_called, &mut boards.clone().into_iter());
 
-        assert_eq!(winning_board, boards[2]);
+        assert_eq!(winning_board, (boards[2], 11));
+    }
+
+    #[test]
+    fn example_board_3_score() {
+        let numbers_called = called_numbers_to_map(
+            &mut vec![
+                7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8,
+                19, 3, 26, 1,
+            ]
+            .into_iter(),
+        );
+
+        let board = [
+            [14, 21, 17, 24, 4],
+            [10, 16, 15, 9, 19],
+            [18, 8, 23, 26, 20],
+            [22, 11, 13, 6, 5],
+            [2, 0, 12, 3, 7],
+        ];
+
+        let winning_index = 11;
+        let winning_number = 24;
+
+        let score = get_board_score(&numbers_called, &board, winning_index, winning_number);
+
+        assert_eq!(score, 4512);
     }
 }
