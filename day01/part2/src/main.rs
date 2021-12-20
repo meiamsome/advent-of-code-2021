@@ -1,9 +1,7 @@
 use std::{fs::File, io::Read};
 
 fn get_depth_increases(list: &Vec<u16>) -> usize {
-    list.windows(4)
-        .map(|res| if res[0] < res[3] { 1 } else { 0 })
-        .sum()
+    list.windows(4).filter(|res| res[0] < res[3]).count()
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
