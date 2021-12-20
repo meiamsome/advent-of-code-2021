@@ -25,11 +25,11 @@ fn calculate_oxygen_generator(bits: usize, diagnostic_input: Vec<u16>) -> u16 {
         if data.len() == 1 {
             return data[0];
         }
+        let bit_selection = 1 << i;
 
-        let bits = data.iter().filter(|&x| x & (1 << i) != 0).count();
+        let bits = data.iter().filter(|&x| x & bit_selection != 0).count();
         let len = data.len();
 
-        let bit_selection = 1 << i;
         let bit_mask = if bits * 2 >= len { bit_selection } else { 0 };
         data = data
             .into_iter()
@@ -47,11 +47,11 @@ fn calculate_co2_scrubber(bits: usize, diagnostic_input: Vec<u16>) -> u16 {
         if data.len() == 1 {
             return data[0];
         }
+        let bit_selection = 1 << i;
 
-        let bits = data.iter().filter(|&x| x & (1 << i) != 0).count();
+        let bits = data.iter().filter(|&x| x & bit_selection != 0).count();
         let len = data.len();
 
-        let bit_selection = 1 << i;
         let bit_mask = if bits * 2 < len { bit_selection } else { 0 };
         data = data
             .into_iter()
