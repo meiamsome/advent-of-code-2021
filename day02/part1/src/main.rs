@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, iter::Inspect};
+use std::{fs::File, io::Read};
 
 type Coordinate = u32;
 
@@ -20,8 +20,8 @@ fn parse_input<'a>(input: &'a str) -> impl Iterator<Item = Instruction> + 'a {
                 None
             }
         })
-        .map(|x| {
-            let (direction, len) = x.trim().split_once(' ').unwrap();
+        .map(|line| {
+            let (direction, len) = line.split_once(' ').unwrap();
             let len = len.parse().unwrap();
             match direction {
                 "forward" => Instruction::Forward(len),
