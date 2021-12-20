@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut instructions = parse_input(&contents);
 
-    let (aim, horizontal, depth) = calculate_position(&mut instructions);
+    let (_aim, horizontal, depth) = calculate_position(&mut instructions);
 
     println!("Coords: {}, {}", horizontal, depth);
 
