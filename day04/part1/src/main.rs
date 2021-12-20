@@ -1,8 +1,13 @@
-use std::{fs::File, io::Read};
+use std::{collections::HashMap, fs::File, io::Read};
 
 type Board = [[u8; 5]; 5];
 
-fn parse_input<'a>(input: &'a str) -> (Vec<u8>, impl Iterator<Item = Board> + 'a) {
+fn parse_input<'a>(
+    input: &'a str,
+) -> (
+    impl Iterator<Item = u8> + 'a,
+    impl Iterator<Item = Board> + 'a,
+) {
     let mut lines = input
         .lines()
         .filter_map(|line| {
@@ -19,8 +24,7 @@ fn parse_input<'a>(input: &'a str) -> (Vec<u8>, impl Iterator<Item = Board> + 'a
         .next()
         .unwrap()
         .split(',')
-        .map(|number| number.parse().unwrap())
-        .collect();
+        .map(|number| number.parse().unwrap());
 
     let boards = std::iter::from_fn(move || {
         if let Some(_) = lines.peek() {
@@ -45,6 +49,13 @@ fn parse_input<'a>(input: &'a str) -> (Vec<u8>, impl Iterator<Item = Board> + 'a
     });
 
     (called_numbers, boards)
+}
+
+fn called_numbers_to_map(called_numbers: &mut dyn Iterator<Item = u8>) -> HashMap<u8, usize> {
+    called_numbers
+        .enumerate()
+        .map(|(index, number)| (number, index))
+        .collect()
 }
 
 fn get_winning_combinations<'a>(board: &'a Board) -> impl Iterator<Item = [u8; 5]> + 'a {
@@ -73,7 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (numbers_called, boards) = parse_input(&contents);
 
-    println!("Number Sequence: {:?}", numbers_called);
+    println!("Number Sequence: {:?}", numbers_called.collect::<Vec<_>>());
     println!("Board count: {}", boards.count());
     Ok(())
 }
@@ -109,7 +120,7 @@ mod test {
         let (called_numbers, board_iterator) = parse_input(&input);
 
         assert_eq!(
-            called_numbers,
+            called_numbers.collect::<Vec<_>>(),
             vec![
                 7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8,
                 19, 3, 26, 1
@@ -140,6 +151,51 @@ mod test {
                     [2, 0, 12, 3, 7],
                 ],
             ],
+        );
+    }
+
+    #[test]
+    fn example_called_numbers_to_map() {
+        let numbers_called = vec![
+            7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19,
+            3, 26, 1,
+        ];
+
+        let result = called_numbers_to_map(&mut numbers_called.into_iter());
+
+        assert_eq!(
+            result,
+            vec![
+                (7, 0),
+                (4, 1),
+                (9, 2),
+                (5, 3),
+                (11, 4),
+                (17, 5),
+                (23, 6),
+                (2, 7),
+                (0, 8),
+                (14, 9),
+                (21, 10),
+                (24, 11),
+                (10, 12),
+                (16, 13),
+                (13, 14),
+                (6, 15),
+                (15, 16),
+                (25, 17),
+                (12, 18),
+                (22, 19),
+                (18, 20),
+                (20, 21),
+                (8, 22),
+                (19, 23),
+                (3, 24),
+                (26, 25),
+                (1, 26),
+            ]
+            .into_iter()
+            .collect(),
         );
     }
 
