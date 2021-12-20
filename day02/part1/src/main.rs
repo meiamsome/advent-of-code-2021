@@ -1,10 +1,12 @@
 use std::{fs::File, io::Read, iter::Inspect};
 
+type Coordinate = u32;
+
 #[derive(Debug, Eq, PartialEq)]
 enum Instruction {
-    Forward(u16),
-    Down(u16),
-    Up(u16),
+    Forward(Coordinate),
+    Down(Coordinate),
+    Up(Coordinate),
 }
 
 fn parse_input<'a>(input: &'a str) -> impl Iterator<Item = Instruction> + 'a {
@@ -30,6 +32,19 @@ fn parse_input<'a>(input: &'a str) -> impl Iterator<Item = Instruction> + 'a {
         })
 }
 
+fn calculate_position(
+    instructions: &mut dyn Iterator<Item = Instruction>,
+) -> (Coordinate, Coordinate) {
+    instructions.fold(
+        (0, 0),
+        |(horizontal, depth), instruction| match instruction {
+            Instruction::Forward(distance) => (horizontal + distance, depth),
+            Instruction::Down(distance) => (horizontal, depth + distance),
+            Instruction::Up(distance) => (horizontal, depth - distance),
+        },
+    )
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut contents = String::new();
     {
@@ -37,7 +52,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         file.read_to_string(&mut contents)?;
     }
 
-    println!("TODO");
+    let mut instructions = parse_input(&contents);
+
+    let (horizontal, depth) = calculate_position(&mut instructions);
+
+    println!("Coords: {}, {}", horizontal, depth);
+
+    println!("Solution: {}", horizontal * depth);
 
     Ok(())
 }
@@ -68,5 +89,19 @@ mod test {
                 Instruction::Forward(2),
             ]
         );
+    }
+
+    #[test]
+    fn example_position() {
+        let input = vec![
+            Instruction::Forward(5),
+            Instruction::Down(5),
+            Instruction::Forward(8),
+            Instruction::Up(3),
+            Instruction::Down(8),
+            Instruction::Forward(2),
+        ];
+
+        assert_eq!(calculate_position(&mut input.into_iter()), (15, 10),);
     }
 }
