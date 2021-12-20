@@ -47,6 +47,23 @@ fn parse_input<'a>(input: &'a str) -> (Vec<u8>, impl Iterator<Item = Board> + 'a
     (called_numbers, boards)
 }
 
+fn get_winning_combinations<'a>(board: &'a Board) -> impl Iterator<Item = [u8; 5]> + 'a {
+    vec![(); 10].into_iter().enumerate().map(|(i, _)| {
+        if i < 5 {
+            board[i]
+        } else {
+            let column = i - 5;
+            [
+                board[0][column],
+                board[1][column],
+                board[2][column],
+                board[3][column],
+                board[4][column],
+            ]
+        }
+    })
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut contents = String::new();
     {
@@ -122,6 +139,35 @@ mod test {
                     [22, 11, 13, 6, 5],
                     [2, 0, 12, 3, 7],
                 ],
+            ],
+        );
+    }
+
+    #[test]
+    fn example_board_1_winning_combinations() {
+        let board = [
+            [22, 13, 17, 11, 0],
+            [8, 2, 23, 4, 24],
+            [21, 9, 14, 16, 7],
+            [6, 10, 3, 18, 5],
+            [1, 12, 20, 15, 19],
+        ];
+
+        let winning = get_winning_combinations(&board);
+
+        assert_eq!(
+            winning.collect::<Vec<_>>(),
+            vec![
+                [22, 13, 17, 11, 0],
+                [8, 2, 23, 4, 24],
+                [21, 9, 14, 16, 7],
+                [6, 10, 3, 18, 5],
+                [1, 12, 20, 15, 19],
+                [22, 8, 21, 6, 1],
+                [13, 2, 9, 10, 12],
+                [17, 23, 14, 3, 20],
+                [11, 4, 16, 18, 15],
+                [0, 24, 7, 5, 19],
             ],
         );
     }
